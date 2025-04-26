@@ -50,7 +50,7 @@ export default function ShippingFeedPage() {
 
   // Initialize WebSocket connection
   const { lastMessage, isConnected, sendMessage } = useWebSocket({
-    url: process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8000/ws',
+    url: process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8001/ws',
     token,
     reconnectInterval: 3000,
     maxReconnectAttempts: 5
@@ -76,7 +76,7 @@ export default function ShippingFeedPage() {
     <ToastProvider>
       <ShippingProvider
         initialData={initialData}
-        websocketUrl={process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8000/ws'}
+        websocketUrl={process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8001/ws'}
         token={token}
       >
       <motion.div

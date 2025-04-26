@@ -38,20 +38,20 @@ interface ShippingProviderProps {
 export function ShippingProvider({
   children,
   initialData,
-  websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8000/ws',
+  websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8001/ws',
   token,
   sessionId: initialSessionId
 }: ShippingProviderProps) {
   // Initialize with merged initial data
   const mergedInitialState = { ...initialState, ...initialData }
-  
+
   // Create the reducer
   const [shippingData, dispatch] = useReducer(shippingReducer, mergedInitialState)
-  
+
   // Get session ID from localStorage if available
   const storedSessionId = typeof window !== 'undefined' ? localStorage.getItem('shipanion_session_id') : null
   const sessionIdToUse = initialSessionId || storedSessionId || undefined
-  
+
   // Initialize WebSocket connection
   const { isConnected, lastMessage, sendMessage, error, useFallback, sessionId } = useWebSocket({
     url: websocketUrl,
@@ -60,7 +60,7 @@ export function ShippingProvider({
     reconnectInterval: 3000,
     maxReconnectAttempts: 5
   })
-  
+
   // Process WebSocket messages
   useEffect(() => {
     if (lastMessage) {
@@ -70,7 +70,7 @@ export function ShippingProvider({
       })
     }
   }, [lastMessage])
-  
+
   // Log connection status changes
   useEffect(() => {
     console.log('WebSocket connection status:', isConnected ? 'Connected' : 'Disconnected')
@@ -78,14 +78,14 @@ export function ShippingProvider({
       console.error('WebSocket error:', error)
     }
   }, [isConnected, error])
-  
+
   // Log when session ID changes
   useEffect(() => {
     if (sessionId) {
       console.log('Active session ID:', sessionId)
     }
   }, [sessionId])
-  
+
   // Create the context value
   const contextValue: ShippingContextType = {
     shippingData,
@@ -94,7 +94,7 @@ export function ShippingProvider({
     sessionId,
     sendMessage
   }
-  
+
   return (
     <ShippingContext.Provider value={contextValue}>
       {children}

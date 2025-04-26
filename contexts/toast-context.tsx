@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useState } from "react"
 import { v4 as uuidv4 } from "uuid"
-import { 
-  Toast, 
-  ToastAction, 
-  ToastClose, 
-  ToastDescription, 
-  ToastProvider, 
-  ToastTitle, 
-  ToastViewport 
+import {
+  Toast,
+  ToastAction,
+  ToastClose,
+  ToastDescription,
+  ToastProvider as UIToastProvider,
+  ToastTitle,
+  ToastViewport
 } from "@/components/ui/toast"
 
 // Define toast types
@@ -52,16 +52,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const addToast = (toast: Omit<ToastMessage, "id">) => {
     const id = uuidv4()
     const newToast = { ...toast, id }
-    
+
     setToasts((prev) => [...prev, newToast])
-    
+
     // Auto-remove toast after duration
     if (toast.duration !== Infinity) {
       setTimeout(() => {
         removeToast(id)
       }, toast.duration || 5000)
     }
-    
+
     return id
   }
 
@@ -79,7 +79,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastContext.Provider value={{ toasts, addToast, removeToast, updateToast }}>
-      <ToastProvider>
+      <UIToastProvider>
         {children}
         <ToastViewport />
         {toasts.map(({ id, title, description, type, action }) => (
@@ -96,7 +96,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <ToastClose />
           </Toast>
         ))}
-      </ToastProvider>
+      </UIToastProvider>
     </ToastContext.Provider>
   )
 }
