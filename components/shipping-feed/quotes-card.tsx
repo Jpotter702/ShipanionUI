@@ -12,6 +12,8 @@ interface QuotesCardProps {
 }
 
 export function QuotesCard({ data, loading = false }: QuotesCardProps) {
+  // Accept loadingQuotes from parent as loading prop
+
   // State to track if quotes were just received (for animation)
   const [justReceived, setJustReceived] = useState(false)
   const prevDataRef = useRef<ShippingQuotes | null>(null)
@@ -41,7 +43,70 @@ export function QuotesCard({ data, loading = false }: QuotesCardProps) {
   }, [data])
 
   // Show loading state if loading is true or if there's no data
-  if (loading || !data) {
+  if (loading) {
+    return (
+      <Card className="w-full dark:border-gray-800">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">
+            <motion.span
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              Getting the best rates for you...
+            </motion.span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.1 }}
+                className="border rounded-lg p-4 flex items-center justify-between animate-pulse"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                </div>
+                <div className="text-right space-y-2">
+                  <div className="h-4 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                </div>
+              </motion.div>
+            ))}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-gray-400 dark:text-gray-500 flex items-center justify-center gap-2 mt-4"
+            >
+              <svg
+                className="animate-spin -ml-1 mr-2 h-5 w-5 text-gray-400 dark:text-gray-500"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Getting the best rates for you...
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  if (!data) {
     return (
       <Card className="w-full dark:border-gray-800">
         <CardHeader className="pb-2">

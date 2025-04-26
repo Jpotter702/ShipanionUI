@@ -296,11 +296,21 @@ export function useWebSocket({ url, reconnectInterval = 3000, maxReconnectAttemp
         // Try to reconnect unless we're using the fallback
         if (!useFallback && reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current += 1
-          const delay = reconnectInterval * Math.pow(1.5, reconnectAttemptsRef.current - 1)
+          // Exponential backoff, but clamp to 2s min, 10s max
+          const baseDelay = Math.max(1000, reconnectInterval)
+          const delay = Math.min(10000, baseDelay * Math.pow(1.5, reconnectAttemptsRef.current - 1))
 
           console.log(`Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts}) in ${delay}ms`)
 
           reconnectTimeoutRef.current = setTimeout(() => {
+            // Attempt reconnect using last known sessionId
+            let sessionToUse = currentSessionId
+            if (!sessionToUse && typeof window !== 'undefined') {
+              sessionToUse = localStorage.getItem('shipanion_session_id') || undefined
+              if (sessionToUse) {
+                setCurrentSessionId(sessionToUse)
+              }
+            }
             // This will trigger a re-render and attempt reconnection
             setError(new Error("Connection closed. Reconnecting..."))
           }, delay)

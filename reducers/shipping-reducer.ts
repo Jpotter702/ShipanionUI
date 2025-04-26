@@ -15,7 +15,9 @@ export enum ActionType {
   SET_LOADING_LABEL = 'SET_LOADING_LABEL',
   PROCESS_WEBSOCKET_MESSAGE = 'PROCESS_WEBSOCKET_MESSAGE',
   LABEL_CREATED = 'LABEL_CREATED',
-  TOOL_RESULT_RECEIVED = 'TOOL_RESULT_RECEIVED'
+  TOOL_RESULT_RECEIVED = 'TOOL_RESULT_RECEIVED',
+  QUOTE_REQUEST_SENT = 'QUOTE_REQUEST_SENT',
+  QUOTE_REQUEST_RECEIVED = 'QUOTE_REQUEST_RECEIVED'
 }
 
 // Define action interfaces
@@ -74,6 +76,14 @@ interface ToolResultReceivedAction {
   payload: any // use a more specific type if available
 }
 
+interface QuoteRequestSentAction {
+  type: ActionType.QUOTE_REQUEST_SENT
+}
+
+interface QuoteRequestReceivedAction {
+  type: ActionType.QUOTE_REQUEST_RECEIVED
+}
+
 // Union type for all actions
 export type ShippingAction =
   | SetCurrentStepAction
@@ -87,6 +97,8 @@ export type ShippingAction =
   | ProcessWebSocketMessageAction
   | LabelCreatedAction
   | ToolResultReceivedAction
+  | QuoteRequestSentAction
+  | QuoteRequestReceivedAction
 
 // Initial state
 export const initialState: ShippingData = {
@@ -326,6 +338,18 @@ export function shippingReducer(state: ShippingData, action: ShippingAction): Sh
       return {
         ...state,
         loadingQuotes: action.payload
+      }
+
+    case ActionType.QUOTE_REQUEST_SENT:
+      return {
+        ...state,
+        loadingQuotes: true
+      }
+
+    case ActionType.QUOTE_REQUEST_RECEIVED:
+      return {
+        ...state,
+        loadingQuotes: false
       }
 
     case ActionType.SET_LOADING_LABEL:
