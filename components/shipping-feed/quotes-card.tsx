@@ -108,49 +108,37 @@ export function QuotesCard({ data, loading = false }: QuotesCardProps) {
     )
   }
 
-  // Ensure we have quotes array and selectedIndex
-  const quotes = data.quotes || []
-  const selectedIndex = data.selectedIndex || 0
-
-  // Animation variants for the container
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.4,
-        when: "beforeChildren",
-        staggerChildren: 0.1
-      }
-    }
-  }
-
+  // Render quotes dynamically from reducer state
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="quote-card-container"
-    >
-      <Card className="w-full dark:border-gray-800">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">
-            <motion.span
+    <Card className="w-full dark:border-gray-800">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">
+          <motion.span
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            Shipping Options
+          </motion.span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          {data.quotes && data.quotes.length > 0 ? (
+            data.quotes.map((quote, index) => (
+              <QuoteItem
+                key={index}
+                quote={quote}
+                isSelected={index === (data.selectedIndex ?? 0)}
+                delay={index * 0.1}
+                isNew={justReceived}
+              />
+            ))
+          ) : (
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              Available Shipping Options
-            </motion.span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence mode="wait">
-            <motion.div
-              className="grid gap-4"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              className="text-gray-500 dark:text-gray-400 text-center py-4"
               // Reset the animation when new quotes are received
               key={justReceived ? "new-quotes" : "existing-quotes"}
             >

@@ -13,7 +13,9 @@ export enum ActionType {
   SET_LABEL_DATA = 'SET_LABEL_DATA',
   SET_LOADING_QUOTES = 'SET_LOADING_QUOTES',
   SET_LOADING_LABEL = 'SET_LOADING_LABEL',
-  PROCESS_WEBSOCKET_MESSAGE = 'PROCESS_WEBSOCKET_MESSAGE'
+  PROCESS_WEBSOCKET_MESSAGE = 'PROCESS_WEBSOCKET_MESSAGE',
+  LABEL_CREATED = 'LABEL_CREATED',
+  TOOL_RESULT_RECEIVED = 'TOOL_RESULT_RECEIVED'
 }
 
 // Define action interfaces
@@ -62,6 +64,16 @@ interface ProcessWebSocketMessageAction {
   payload: any
 }
 
+interface LabelCreatedAction {
+  type: ActionType.LABEL_CREATED
+  payload: LabelData
+}
+
+interface ToolResultReceivedAction {
+  type: ActionType.TOOL_RESULT_RECEIVED
+  payload: any // use a more specific type if available
+}
+
 // Union type for all actions
 export type ShippingAction =
   | SetCurrentStepAction
@@ -73,6 +85,8 @@ export type ShippingAction =
   | SetLoadingQuotesAction
   | SetLoadingLabelAction
   | ProcessWebSocketMessageAction
+  | LabelCreatedAction
+  | ToolResultReceivedAction
 
 // Initial state
 export const initialState: ShippingData = {
@@ -276,6 +290,13 @@ export function shippingReducer(state: ShippingData, action: ShippingAction): Sh
         quotes: action.payload
       }
 
+    case "TOOL_RESULT_RECEIVED":
+      return {
+        ...state,
+        quotes: action.payload.quotes || [],
+        currentStep: 1 // or a string like "QuoteReady" if that's your convention
+      }
+
     case ActionType.SET_SHIPPING_CONFIRMATION:
       return {
         ...state,
@@ -292,6 +313,13 @@ export function shippingReducer(state: ShippingData, action: ShippingAction): Sh
       return {
         ...state,
         label: action.payload
+      }
+
+    case "LABEL_CREATED":
+      return {
+        ...state,
+        label: action.payload,
+        currentStep: 4 // or a string like "LabelCreated" if that's your convention
       }
 
     case ActionType.SET_LOADING_QUOTES:

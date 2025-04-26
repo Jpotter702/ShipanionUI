@@ -238,7 +238,7 @@ export function ShippingFeed({ data, stepState }: ShippingFeedProps) {
         >
           <StepperAccordion
             steps={steps}
-            currentStep={currentStep}
+            currentStep={stepState.currentStep}
             stepState={stepState}
           />
         </motion.div>
