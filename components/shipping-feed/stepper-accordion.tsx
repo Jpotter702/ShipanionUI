@@ -3,9 +3,10 @@
 import { useState, useEffect, type ReactNode } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, CircleCheck } from "lucide-react"
 import { motion } from "framer-motion"
 import { playSound } from "@/lib/sound-effects"
+import { StepState, ShippingStep } from "@/hooks/use-step-reducer"
 
 interface Step {
   title: string
@@ -18,9 +19,10 @@ interface Step {
 interface StepperAccordionProps {
   steps: Step[]
   currentStep: number
+  stepState: StepState
 }
 
-export function StepperAccordion({ steps, currentStep }: StepperAccordionProps) {
+export function StepperAccordion({ steps, currentStep, stepState }: StepperAccordionProps) {
   // Track which steps have been manually opened
   const [openSteps, setOpenSteps] = useState<string[]>([`step-${currentStep}`])
 
@@ -90,23 +92,35 @@ export function StepperAccordion({ steps, currentStep }: StepperAccordionProps) 
               value={`step-${index}`}
               className={cn(
                 "border-b border-l-0 border-r-0 border-t-0 pl-12 relative transition-all duration-300",
-                step.isActive && "bg-gray-50 dark:bg-gray-800/50 rounded-md",
-                step.isUpdated && !step.isActive && "border-l-2 border-l-blue-500 dark:border-l-blue-400",
+                // Highlight active step from both sources
+                (step.isActive || index === stepState.currentStep) && "bg-gray-50 dark:bg-gray-800/50 rounded-md",
+                // Add a stronger highlight for the step from stepState
+                index === stepState.currentStep && "border-l-2 border-l-green-500 dark:border-l-green-400",
+                // Keep the blue highlight for updated steps
+                step.isUpdated && !step.isActive && index !== stepState.currentStep && "border-l-2 border-l-blue-500 dark:border-l-blue-400",
               )}
             >
               {/* Step number or check icon - smaller size */}
               <motion.div
                 className={cn(
                   "absolute left-0 top-4 flex items-center justify-center w-10 h-10 rounded-full border-2",
-                  step.isComplete
+                  // Check if step is complete from either source
+                  (step.isComplete || stepState.completedSteps.includes(index as ShippingStep))
                     ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                     : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700",
+                  // Add a pulsing effect for the current step from stepState
+                  index === stepState.currentStep && "ring-2 ring-green-300 dark:ring-green-700 ring-opacity-50"
                 )}
                 initial={false}
-                animate={step.isComplete ? { scale: [1, 1.1, 1], borderColor: "#22c55e" } : {}}
+                animate={
+                  (step.isComplete || stepState.completedSteps.includes(index as ShippingStep))
+                    ? { scale: [1, 1.1, 1], borderColor: "#22c55e" }
+                    : (index === stepState.currentStep ? { scale: [1, 1.05, 1], repeat: Infinity, repeatType: "reverse" } : {})
+                }
                 transition={{ duration: 0.3 }}
               >
-                {step.isComplete ? (
+                {/* Show check icon if step is complete from either source */}
+                {(step.isComplete || stepState.completedSteps.includes(index as ShippingStep)) ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -118,7 +132,9 @@ export function StepperAccordion({ steps, currentStep }: StepperAccordionProps) 
                   <span
                     className={cn(
                       "text-base font-semibold",
-                      step.isActive ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400",
+                      (step.isActive || index === stepState.currentStep)
+                        ? "text-gray-900 dark:text-gray-100"
+                        : "text-gray-500 dark:text-gray-400",
                     )}
                   >
                     {index + 1}
@@ -129,7 +145,13 @@ export function StepperAccordion({ steps, currentStep }: StepperAccordionProps) 
               <AccordionTrigger
                 className={cn(
                   "py-4 hover:no-underline transition-colors duration-200",
-                  step.isActive ? "text-gray-900 dark:text-white font-medium" : "text-gray-500 dark:text-gray-400",
+                  // Highlight active step from both sources
+                  (step.isActive || index === stepState.currentStep)
+                    ? "text-gray-900 dark:text-white font-medium"
+                    : "text-gray-500 dark:text-gray-400",
+                  // Add a special style for completed steps
+                  stepState.completedSteps.includes(index as ShippingStep) && !step.isActive && index !== stepState.currentStep
+                    && "text-green-600 dark:text-green-400"
                 )}
               >
                 <div className="flex items-center gap-2">

@@ -15,6 +15,7 @@ export enum MessageType {
   LABEL_CREATED = 'label_created',
   CONTEXTUAL_UPDATE = 'contextual_update',
   CLIENT_TOOL_RESULT = 'client_tool_result',
+  CLIENT_TOOL_CALL = 'client_tool_call',
   ERROR = 'error'
 }
 
@@ -24,6 +25,12 @@ export enum ContextualUpdateType {
   LABEL_CREATED = 'label_created',
   ZIP_COLLECTED = 'zip_collected',
   WEIGHT_CONFIRMED = 'weight_confirmed'
+}
+
+// Define client tool types
+export enum ClientToolType {
+  GET_SHIPPING_QUOTES = 'get_shipping_quotes',
+  CREATE_LABEL = 'create_label'
 }
 
 interface WebSocketOptions {
@@ -180,10 +187,95 @@ export function useWebSocket({ url, reconnectInterval = 3000, maxReconnectAttemp
           // Process the message based on its type
           if (parsedData.type === MessageType.CONTEXTUAL_UPDATE) {
             console.log("Received contextual update:", parsedData)
+          } else if (parsedData.type === MessageType.CLIENT_TOOL_CALL) {
+            console.log("Received client tool call:", parsedData)
+
+            // Process client tool call based on tool_name
+            if (parsedData.tool_name === ClientToolType.GET_SHIPPING_QUOTES) {
+              console.log("Received shipping quotes call:", parsedData)
+
+              // Create a properly formatted message for the reducer
+              const formattedMessage = {
+                type: MessageType.CLIENT_TOOL_CALL,
+                tool_name: ClientToolType.GET_SHIPPING_QUOTES,
+                tool_call_id: parsedData.tool_call_id || `quotes-${Date.now()}`
+              }
+
+              // Set the formatted message
+              setLastMessage({
+                data: JSON.stringify(formattedMessage),
+                type: MessageType.CLIENT_TOOL_CALL
+              })
+
+              // Return early to avoid setting the message again below
+              return
+            } else if (parsedData.tool_name === ClientToolType.CREATE_LABEL) {
+              console.log("Received create label call:", parsedData)
+
+              // Create a properly formatted message for the reducer
+              const formattedMessage = {
+                type: MessageType.CLIENT_TOOL_CALL,
+                tool_name: ClientToolType.CREATE_LABEL,
+                tool_call_id: parsedData.tool_call_id || `label-${Date.now()}`
+              }
+
+              // Set the formatted message
+              setLastMessage({
+                data: JSON.stringify(formattedMessage),
+                type: MessageType.CLIENT_TOOL_CALL
+              })
+
+              // Return early to avoid setting the message again below
+              return
+            }
           } else if (parsedData.type === MessageType.CLIENT_TOOL_RESULT) {
             console.log("Received client tool result:", parsedData)
+
+            // Process client tool result based on tool_name
+            if (parsedData.client_tool_call && parsedData.client_tool_call.tool_name === ClientToolType.GET_SHIPPING_QUOTES) {
+              console.log("Received shipping quotes result:", parsedData)
+
+              // Create a properly formatted message for the reducer
+              const formattedMessage = {
+                type: MessageType.CLIENT_TOOL_RESULT,
+                tool_name: ClientToolType.GET_SHIPPING_QUOTES,
+                tool_call_id: parsedData.tool_call_id,
+                result: parsedData.result,
+                is_error: parsedData.is_error || false
+              }
+
+              // Set the formatted message
+              setLastMessage({
+                data: JSON.stringify(formattedMessage),
+                type: MessageType.CLIENT_TOOL_RESULT
+              })
+
+              // Return early to avoid setting the message again below
+              return
+            } else if (parsedData.client_tool_call && parsedData.client_tool_call.tool_name === ClientToolType.CREATE_LABEL) {
+              console.log("Received create label result:", parsedData)
+
+              // Create a properly formatted message for the reducer
+              const formattedMessage = {
+                type: MessageType.CLIENT_TOOL_RESULT,
+                tool_name: ClientToolType.CREATE_LABEL,
+                tool_call_id: parsedData.tool_call_id,
+                result: parsedData.result,
+                is_error: parsedData.is_error || false
+              }
+
+              // Set the formatted message
+              setLastMessage({
+                data: JSON.stringify(formattedMessage),
+                type: MessageType.CLIENT_TOOL_RESULT
+              })
+
+              // Return early to avoid setting the message again below
+              return
+            }
           }
 
+          // For all other message types, set the message as is
           setLastMessage({
             data: event.data,
             type: parsedData.type || "message",

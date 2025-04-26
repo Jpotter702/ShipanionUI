@@ -7,12 +7,17 @@ import { Badge } from "@/components/ui/badge"
 import { useEffect, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ConfettiCelebration } from "@/components/confetti-celebration"
+import { useWebSocket } from "@/hooks/use-web-socket"
+import { useStepReducer, ShippingStep } from "@/hooks/use-step-reducer"
 
 export function ShippingFeedContainer() {
-  const { shippingData, isConnected, sessionId } = useShipping()
+  const { shippingData, isConnected, sessionId, lastMessage } = useShipping()
   const [showSessionBadge, setShowSessionBadge] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const prevStepRef = useRef(shippingData.currentStep)
+
+  // Use the step reducer to track the current step
+  const { state: stepState, setStep, completeStep } = useStepReducer(lastMessage)
 
   // Show session badge after a delay
   useEffect(() => {
@@ -36,6 +41,14 @@ export function ShippingFeedContainer() {
 
     prevStepRef.current = currentStep
   }, [shippingData.currentStep])
+
+  // Also trigger confetti when the step reducer reaches the LABEL_CREATED step
+  useEffect(() => {
+    if (stepState.currentStep === ShippingStep.LABEL_CREATED &&
+        !stepState.completedSteps.includes(ShippingStep.LABEL_CREATED)) {
+      setShowConfetti(true)
+    }
+  }, [stepState.currentStep, stepState.completedSteps])
 
   return (
     <div className="relative">
@@ -81,7 +94,7 @@ export function ShippingFeedContainer() {
       </AnimatePresence>
 
       {/* Main shipping feed */}
-      <ShippingFeed data={shippingData} />
+      <ShippingFeed data={shippingData} stepState={stepState} />
 
       {/* Confetti celebration */}
       <ConfettiCelebration trigger={showConfetti} duration={6000} />

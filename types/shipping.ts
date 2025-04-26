@@ -57,4 +57,6 @@ export interface ShippingData {
   confirmation: ShippingConfirmation | null
   payment: PaymentData | null
   label: LabelData | null
+  loadingQuotes: boolean
+  loadingLabel: boolean
 }

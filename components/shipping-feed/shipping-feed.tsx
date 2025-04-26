@@ -10,13 +10,15 @@ import { LabelCard } from "./label-card"
 import type { ShippingData } from "@/types/shipping"
 import { motion, AnimatePresence, useAnimationControls } from "framer-motion"
 import { playSound, preloadSoundEffects } from "@/lib/sound-effects"
+import { StepState, ShippingStep } from "@/hooks/use-step-reducer"
 
 interface ShippingFeedProps {
   data: ShippingData
+  stepState: StepState
 }
 
-export function ShippingFeed({ data }: ShippingFeedProps) {
-  const { currentStep, details, quotes, confirmation, payment, label } = data
+export function ShippingFeed({ data, stepState }: ShippingFeedProps) {
+  const { currentStep, details, quotes, confirmation, payment, label, loadingQuotes, loadingLabel } = data
   const prevStepRef = useRef(currentStep)
 
   // Animation controls for highlighting updated content
@@ -178,7 +180,7 @@ export function ShippingFeed({ data }: ShippingFeedProps) {
       title: "Shipping Quotes",
       content: (
         <motion.div animate={quotesControls}>
-          <QuotesCard data={quotes} />
+          <QuotesCard data={quotes} loading={loadingQuotes} />
         </motion.div>
       ),
       isComplete: currentStep > 1 || manuallyCompletedSteps.includes(1),
@@ -211,7 +213,7 @@ export function ShippingFeed({ data }: ShippingFeedProps) {
       title: "Shipping Label",
       content: (
         <motion.div animate={labelControls}>
-          <LabelCard data={label} />
+          <LabelCard data={label} loading={loadingLabel} />
         </motion.div>
       ),
       isComplete: currentStep > 4 || manuallyCompletedSteps.includes(4),
@@ -234,7 +236,11 @@ export function ShippingFeed({ data }: ShippingFeedProps) {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.3 }}
         >
-          <StepperAccordion steps={steps} currentStep={currentStep} />
+          <StepperAccordion
+            steps={steps}
+            currentStep={currentStep}
+            stepState={stepState}
+          />
         </motion.div>
       </AnimatePresence>
     </motion.div>
