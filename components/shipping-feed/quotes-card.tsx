@@ -261,9 +261,9 @@ export function QuotesCard({ data, loading = false }: QuotesCardProps) {
               No shipping quotes available
             </motion.div>
           )}
+        </div>
         </CardContent>
       </Card>
-    </motion.div>
   )
 }
 
