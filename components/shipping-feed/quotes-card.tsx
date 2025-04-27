@@ -204,30 +204,10 @@ export function QuotesCard({ data, loading = false }: QuotesCardProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-gray-500 dark:text-gray-400 text-center py-4"
-              // Reset the animation when new quotes are received
-              key={justReceived ? "new-quotes" : "existing-quotes"}
             >
-              {quotes.length > 0 ? (
-                quotes.map((quote, index) => (
-                  <QuoteItem
-                    key={`${quote.carrier}-${quote.service}-${index}`}
-                    quote={quote}
-                    isSelected={index === selectedIndex}
-                    delay={index * 0.15}
-                    isNew={justReceived}
-                  />
-                ))
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-gray-500 dark:text-gray-400 text-center py-4"
-                >
-                  No shipping quotes available
-                </motion.div>
-              )}
+              No shipping quotes available
             </motion.div>
-          </AnimatePresence>
+          )}
         </CardContent>
       </Card>
     </motion.div>
