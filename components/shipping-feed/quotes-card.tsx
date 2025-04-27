@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import type { ShippingQuotes, Quote } from "@/types/shipping"
 import { Clock, DollarSign } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
