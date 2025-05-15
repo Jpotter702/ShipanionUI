@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react'
 import { ShippingData } from '@/types/shipping'
 import { shippingReducer, initialState, ActionType } from '@/reducers/shipping-reducer'
 import { useWebSocket } from '@/hooks/use-web-socket'
@@ -34,6 +34,23 @@ interface ShippingProviderProps {
   sessionId?: string
 }
 
+// Helper to debounce action dispatches
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = React.useState<T>(value);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 // Provider component
 export function ShippingProvider({
   children,
@@ -43,7 +60,10 @@ export function ShippingProvider({
   sessionId: initialSessionId
 }: ShippingProviderProps) {
   // Initialize with merged initial data
-  const mergedInitialState = { ...initialState, ...initialData }
+  const mergedInitialState = useMemo(() => 
+    ({ ...initialState, ...initialData }),
+    [] // Only compute this once on mount
+  );
 
   // Create the reducer
   const [shippingData, dispatch] = useReducer(shippingReducer, mergedInitialState)
@@ -61,39 +81,35 @@ export function ShippingProvider({
     maxReconnectAttempts: 5
   })
 
-  // Process WebSocket messages
+  // Wrap dispatch in useCallback to prevent unnecessary re-renders
+  const processMessage = useCallback((message: any) => {
+    if (!message) return;
+    
+    dispatch({
+      type: ActionType.PROCESS_WEBSOCKET_MESSAGE,
+      payload: message
+    });
+  }, []);
+  
+  // Process WebSocket messages with a debounce to prevent excessive updates
   useEffect(() => {
-    if (lastMessage) {
-      dispatch({
-        type: ActionType.PROCESS_WEBSOCKET_MESSAGE,
-        payload: lastMessage
-      })
-    }
-  }, [lastMessage])
+    if (!lastMessage) return;
+    
+    const timer = setTimeout(() => {
+      processMessage(lastMessage);
+    }, 50); // Small delay to batch potential rapid messages
+    
+    return () => clearTimeout(timer);
+  }, [lastMessage, processMessage]);
 
-  // Log connection status changes
-  useEffect(() => {
-    console.log('WebSocket connection status:', isConnected ? 'Connected' : 'Disconnected')
-    if (error) {
-      console.error('WebSocket error:', error)
-    }
-  }, [isConnected, error])
-
-  // Log when session ID changes
-  useEffect(() => {
-    if (sessionId) {
-      console.log('Active session ID:', sessionId)
-    }
-  }, [sessionId])
-
-  // Create the context value
-  const contextValue: ShippingContextType = {
+  // Create the context value with memoization to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
     shippingData,
     dispatch,
     isConnected,
     sessionId,
     sendMessage
-  }
+  }), [shippingData, isConnected, sessionId, sendMessage]);
 
   return (
     <ShippingContext.Provider value={contextValue}>
